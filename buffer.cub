@@ -120,7 +120,7 @@ Token expect(TokenBuffer state, u8 tokenType) {
   Token token = bufferShift(state);
 
   if (token.tokenType != tokenType) {
-    print("expected token '" # tokenType # "', found '" # token.tokenType # "'");
+    print("expected token '" # u8ToString(tokenType) # "', found '" # u8ToString(token.tokenType) # "'");
     // print("expected token '#{tokenType}', found '#{token.tokenType}'");
     exit(1);
   }

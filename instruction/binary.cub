@@ -1,0 +1,5 @@
+class BinaryInstruction {
+  BinaryInstruction(BinaryOperation operation, u64 left, u64 right) {
+
+  }
+}

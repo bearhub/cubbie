@@ -1,0 +1,26 @@
+class ShiftOperation extends BinaryOperation {
+  enum {ASHIFT, LSHIFT, RSHIFT} shiftOperation;
+
+  string name() {
+    return this.shiftOperation;
+  }
+
+  bool validType(Type operandType) {
+    return operandType is Integer;
+  }
+
+  Expresson? castAssign(Type left, Expression right) {
+    if (this.allowTypes(left, right.type)) {
+      Type? promotedType = right.type.promoteNumeric();
+      if (promotedType != null) {
+        return castImplicit(promotedType, right);
+      }
+    }
+    return null;
+  }
+
+  Block generate(Block block, u64 left, u64 right) {
+    block.add(new ShiftInstruction(this, left, right));
+    return block;
+  }
+}

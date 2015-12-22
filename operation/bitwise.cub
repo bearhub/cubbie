@@ -1,0 +1,21 @@
+class BitwiseOperation extends BinaryOperation {
+  enum {BAND, BOR, BXOR} bitwiseOperation;
+
+  string name() {
+    return this.bitwiseOperation;
+  }
+
+  bool validType(Type operandType) {
+    return operandType is Integer;
+  }
+
+  Expression? castAssign(Type left, Expression right) {
+    return this.allowTypes(left, right.type) ? castImplicit(left, right) : null;
+  }
+
+  // TODO: left and right should be opaque from this perspective
+  Block generate(Block block, u64 left, u64 right) {
+    block.add(new BitwiseInstruction(this, left, right));
+    return block;
+  }
+}

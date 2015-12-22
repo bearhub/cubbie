@@ -1,0 +1,14 @@
+class BinaryOperation {
+  string name();
+
+  bool validType(Type operandType);
+
+  bool allowTypes(Type left, Type right) {
+    return this.validType(left) && this.validType(right);
+  }
+
+  // for operational assignments (e.g. +=)
+  Expression? castAssign(Type left, Expression right);
+
+  Block generate(Block, u64 left, u64 right);
+}

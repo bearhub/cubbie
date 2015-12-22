@@ -1,0 +1,76 @@
+to handle any of the following:
+  a + b
+  a = b
+  a[b] = c
+  a.b = c
+  a += b
+  a[b] += c
+  a.b += c
+a + b
+  analyze:
+    check numeric operands
+    binary numeric promotion
+  generate:
+    left
+    right
+    add
+a = b
+  analyze:
+    symbol lookup
+    implicit cast
+  generate:
+    right
+    update symbol entry
+a[b] = c
+  analyze:
+    check if left left has a subtype and can be modified
+    check if left right is an integer
+    implicit cast
+  generate:
+    left left
+    left right
+    right
+    set index
+a.b = c
+  analyze:
+    class lookup
+    field lookup
+    implicit cast
+  generate:
+    left
+    right
+    set field
+a += b
+  analyze:
+    symbol lookup
+    check numeric operands
+    implicit cast
+  generate:
+    left
+    right
+    add
+    set symbol
+a[b] += c
+  analyze:
+    check if left left has a subtype and can be modified
+    check if left right is an integer
+    implicit cast
+  generate:
+    left left
+    left right
+    get index
+    right
+    add
+    set index
+a.b += c
+  analyze:
+    class lookup
+    field lookup
+    implicit cast
+  generate:
+    left left
+    left right
+    get field
+    right
+    add
+    set field

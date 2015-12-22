@@ -1,0 +1,133 @@
+class TokenBufferEntry {
+  Token token;
+  TokenBufferEntry next;
+}
+
+// L_EOF
+class TokenBuffer {
+  Token eof;
+  TokenBufferEntry head, tail, lookahead;
+
+  Stream input;
+}
+
+TokenBuffer newTokenBuffer() {
+  Stream input = newStream();
+
+  return new TokenBuffer(null, null, null, null, input);
+}
+
+Token bufferPeek(TokenBuffer state) {
+  if (state.eof != null) {
+    return state.eof;
+  }
+
+  if (state.head != null) {
+    return state.head.token;
+  }
+
+  Token token = scan(state.input);
+
+  if (token == null) {
+    return state.eof = newToken(state.input, L_EOF);
+  }
+
+  state.head = (state.tail = new TokenBufferEntry(token, null));
+  return token;
+}
+
+Token bufferShift(TokenBuffer state) {
+  if (state.eof != null) {
+    return state.eof;
+  }
+
+  TokenBufferEntry head = state.head;
+  if (head != null) {
+    TokenBufferEntry next = head.next;
+    state.head = next;
+    if (next == null) {
+      state.tail = null;
+    }
+    return head.token;
+  }
+
+  Token token = scan(state.input);
+  return token == null ? (state.eof = newToken(state.input, L_EOF))
+    : token;
+}
+
+void bufferPush(TokenBuffer state, Token token) {
+  state.eof = null;
+
+  TokenBufferEntry head = state.head,
+    entry = new TokenBufferEntry(token, head);
+  state.head = entry;
+  if (head == null) {
+    state.tail = entry;
+  }
+}
+
+void startBufferLookahead(TokenBuffer state) {
+  state.lookahead = state.head;
+}
+
+bool bufferLookahead(TokenBuffer state, u8 tokenType) {
+  TokenBufferEntry entry = state.lookahead;
+
+  if (entry != null) {
+    if (entry.token.tokenType != tokenType) {
+      return false;
+    }
+
+    state.lookahead = entry.next;
+    return true;
+  }
+
+  Token token = scan(state.input);
+
+  if (token == null) {
+    return tokenType == L_EOF;
+  }
+
+  // this really shouldn't be necessary but just in case
+  state.eof = null;
+
+  entry = new TokenBufferEntry(token, null);
+
+  TokenBufferEntry tail = state.tail;
+  if (tail == null) {
+    state.head = entry;
+  } else {
+    tail.next = entry;
+  }
+  state.tail = entry;
+
+  return token.tokenType == tokenType;
+}
+
+Token accept(TokenBuffer state, u8 tokenType) {
+  Token token = bufferPeek(state);
+
+  if (token.tokenType == tokenType) {
+    bufferShift(state);
+    return token;
+  }
+
+  return null;
+}
+
+Token expect(TokenBuffer state, u8 tokenType) {
+  Token token = bufferShift(state);
+
+  if (token.tokenType != tokenType) {
+    print("expected token '" # tokenType # "', found '" # token.tokenType # "'");
+    // print("expected token '#{tokenType}', found '#{token.tokenType}'");
+    exit(1);
+  }
+
+  return token;
+}
+
+string expectIdentifier(TokenBuffer state) {
+  return expect(state, L_IDENTIFIER).valueString;
+}

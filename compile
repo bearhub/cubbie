@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+cpp -P "$DIR/constants.cub" "$DIR/all.cub.tmp"
+cat $(cd "$DIR" && ls *.cub | grep -v '^constants.cub$') >> "$DIR/all.cub.tmp"
+
+echo "update and uncomment the next line of this bash file with the path to the cub binary"
+#"cub" "$DIR/all.cub.tmp"

@@ -24,12 +24,12 @@ Expression parseExpressionInner(TokenBuffer state, Expression left,
     u8 minPrecedence) {
   // TODO: handle nulls, especially from bufferPeek
   Token lookahead = bufferPeek(state);
-  OperatorEntry entry;
+  OperatorPrecedence entry;
 
   while ((entry = operatorPrecedences[lookahead.tokenType]) != null &&
       entry.precedence >= minPrecedence) {
     Token operation = lookahead;
-    OperatorEntry operationEntry = entry;
+    OperatorPrecedence operationEntry = entry;
     u8 operationPrecedence = operationEntry.precedence;
     bufferShift(state);
     Expression right = parseUnaryExpression(state);
@@ -38,11 +38,11 @@ Expression parseExpressionInner(TokenBuffer state, Expression left,
     while ((entry = operatorPrecedences[lookahead.tokenType]) != null &&
         (entry.precedence > operationPrecedence || (entry.rightAssoc &&
         entry.precedence == operationPrecedence))) {
-      right = parseExpressionInner(right, entry.precedence);
+      right = parseExpressionInner(state, right, entry.precedence);
       lookahead = bufferPeek(state);
     }
 
-    left = newBinaryExpression(operationEntry.operator, left, right);
+    left = newBinaryNode(operationEntry.operator, left, right);
   }
 
   return left;

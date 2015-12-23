@@ -1,6 +1,10 @@
 BlockStatement newBlockStatement(Statement body) {
-  return new BlockStatement(S_BLOCK, null, null, body, null, null, null, null,
-    null);
+  BlockStatement block = new BlockStatement(S_BLOCK, null, null, body, null,
+    null, null, null, null);
+  if (body != null) {
+    body.parent = block;
+  }
+  return block;
 }
 
 ClassStatement newClassStatement(Class classType) {

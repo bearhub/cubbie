@@ -41,12 +41,12 @@ ClassStatement parseClass(TokenBuffer state) {
 
   expect(state, L_OPEN_BRACE);
 
-  DefineStatement define;
   // TODO: use a List (when we have templates)
   Field[] entries = new Field[16];
 
   u32 count = 0;
-  while ((define = parseDefineStatement(state, false)) != null) {
+  while (accept(state, L_CLOSE_BRACE) == null) {
+    DefineStatement define = expectDefineStatement(state, false);
     expect(state, L_SEMICOLON);
 
     Type defineType = define.symbolType;
@@ -62,8 +62,6 @@ ClassStatement parseClass(TokenBuffer state) {
   }
 
   entries.length = count;
-
-  expect(state, L_CLOSE_BRACE);
 
   return newClassStatement(new Class(className, parentName, null, entries, 0));
 }

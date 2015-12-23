@@ -76,29 +76,12 @@ Statement expectStatement(TokenBuffer state) {
     Statement first = expectStatement(state),
       second = accept(state, L_ELSE) != null ? expectStatement(state) : null;
 
-    IfStatement result = newIfStatement(condition, null, null);
+    IfStatement branch = newIfStatement(condition, null, null);
 
-    if (first != null) {
-      if (first.type != S_BLOCK) {
-        first = newBlockStatement(first);
-        first.body.parent = first;
-      }
+    branch.first = setBlockParent(first, branch);
+    branch.second = setBlockParent(second, branch);
 
-      first.parent = result;
-      result.first = first;
-    }
-
-    if (second != null) {
-      if (second.type != S_BLOCK) {
-        second = newBlockStatement(second);
-        second.body.parent = second;
-      }
-
-      second.parent = result;
-      result.second = second;
-    }
-
-    return result;
+    return branch;
   }
 
   if (type == L_LET) {
@@ -150,7 +133,7 @@ Statement expectStatement(TokenBuffer state) {
   }
 
   if (type == L_TYPEDEF) {
-    Type left = parseType(state, false, false);
+    Type left = parseType(state, false, false).returnType;
 
     expect(state, L_AS);
 
@@ -180,11 +163,10 @@ Statement expectStatement(TokenBuffer state) {
 
     if (body == null) {
       bodyBlock = null;
-    } else if (body.type == S_BLOCK) {
+    } else if (body is BlockStatement) {
       bodyBlock = <BlockStatement> body;
     } else {
       bodyBlock = newBlockStatement(body);
-      body.parent = bodyBlock;
     }
 
     LoopStatement loop = newLoopStatement(type == L_DO ? S_DO_WHILE : S_WHILE,
@@ -204,9 +186,15 @@ Statement expectStatement(TokenBuffer state) {
     if (accept(state, L_SEMICOLON) != null) {
       init = null;
     } else {
-      init = parseDefineStatement(state, true);
-      if (init == null) {
+      u8 structure = disambiguateStatement(state);
+      if (structure == G_DEFINE) {
+        init = expectDefineStatement(state, true);
+      } else if (structure == G_EXPRESSION) {
         init = newExpressionStatement(parseExpression(state));
+      } else {
+        // TODO: line number
+        print("expecting define or expression");
+        exit(1);
       }
       expect(state, L_SEMICOLON);
     }
@@ -231,9 +219,8 @@ Statement expectStatement(TokenBuffer state) {
 
     Statement body = expectStatement(state);
 
-    if (body != null && body.type != S_BLOCK) {
+    if (body != null && !(body is BlockStatement)) {
       body = newBlockStatement(body);
-      body.body.parent = body;
     }
 
     if (iterator != null) {
@@ -245,11 +232,10 @@ Statement expectStatement(TokenBuffer state) {
         body = newBlockStatement(body);
         each.parent = body;
       }
-
-      body.body.parent = body;
     }
 
-    Statement result = newLoopStatement(S_WHILE, condition, body);
+    Statement result = newLoopStatement(S_WHILE, condition,
+      <BlockStatement> body);
 
     if (body != null) {
       body.parent = result;
@@ -258,7 +244,6 @@ Statement expectStatement(TokenBuffer state) {
     if (init != null) {
       init.next = result;
       result = newBlockStatement(init);
-      init.parent = result;
       init.next.parent = result;
     }
 
@@ -276,7 +261,14 @@ Statement expectStatement(TokenBuffer state) {
     }
 
     Statement loop = expectStatement(state);
-    loop.label = token.valueString;
+
+    if (!(loop is LoopStatement)) {
+      // TODO: line number
+      print("expected loop after label");
+      exit(1);
+    }
+
+    (<LoopStatement> loop).label = token.valueString;
     return loop;
   }
 
@@ -285,11 +277,33 @@ Statement expectStatement(TokenBuffer state) {
   return parseAmbiguousStatement(state);
 }
 
-DefineStatement parseDefineStatement(TokenBuffer state, bool allowInit) {
-  Type defineType = parseType(state, false);
+Statement parseAmbiguousStatement(TokenBuffer state) {
+  u8 structure = disambiguateStatement(state);
+
+  if (structure == G_FUNCTION) {
+    return newFunctionStatement(parseFunction(state, false));
+  }
+
+  Statement result;
+  if (structure == G_DEFINE) {
+    result = expectDefineStatement(state, true);
+  } else if (structure == G_EXPRESSION) {
+    result = newExpressionStatement(parseExpression(state));
+  } else {
+    print("expected statement");
+    exit(1);
+  }
+
+  expect(state, L_SEMICOLON);
+  return result;
+}
+
+DefineStatement expectDefineStatement(TokenBuffer state, bool allowInit) {
+  Type defineType = parseType(state, false, false).returnType;
 
   if (defineType == null) {
-    return null;
+    print("expected define statement");
+    exit(1);
   }
 
   string symbol = expectIdentifier(state);
@@ -315,4 +329,22 @@ DefineStatement parseDefineStatement(TokenBuffer state, bool allowInit) {
   tail.next = null;
 
   return newDefineStatement(defineType, head);
+}
+
+BlockStatement setBlockParent(Statement child, Statement parent) {
+  BlockStatement childBlock;
+
+  if (child == null) {
+    childBlock = null;
+  } else {
+    if (child is BlockStatement) {
+      childBlock = <BlockStatement> child;
+    } else {
+      childBlock = newBlockStatement(child);
+    }
+
+    childBlock.parent = parent;
+  }
+
+  return childBlock;
 }

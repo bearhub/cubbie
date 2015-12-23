@@ -92,6 +92,11 @@ Expression newLiteralInteger(u8 type, u64 value) {
     null, null, null, 0, null);
 }
 
+Expression newLiteralBool(bool value) {
+  return new Expression(O_LITERAL, newType(T_BOOL), value, 0, 0, 0, 0, null,
+    null, null, null, 0, null);
+}
+
 Expression newNegateNode(Expression value) {
   return newBasicNode(O_NEGATE, value);
 }

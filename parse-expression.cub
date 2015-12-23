@@ -58,8 +58,8 @@ Expression parseUnaryExpression(TokenBuffer state) {
   }
 
   if (prefix.tokenType == L_INCREMENT || prefix.tokenType == L_DECREMENT) {
-    return assignNode(prefix.tokenType == L_INCREMENT ? O_ADD : O_SUB,
-      parseUnaryExpression(state), newLiteralInteger(T_U8, 1));
+    return newBinaryNode(prefix.tokenType == L_INCREMENT ? O_ADD_ASSIGN
+      : O_SUB_ASSIGN, parseUnaryExpression(state), newLiteralInteger(T_U8, 1));
   }
 
   if (prefix.tokenType == L_SUB) {
@@ -74,7 +74,7 @@ Expression parseUnaryExpression(TokenBuffer state) {
     return parseNew(state);
   }
 
-  parsePush(state, prefix);
+  bufferPush(state, prefix);
 
   return parseLocalExpression(state);
 }
@@ -129,7 +129,7 @@ Expression parsePrimaryExpression(TokenBuffer state) {
     return newLiteralFromToken(token);
   }
 
-  if (predictFunctionExpression(state)) {
+  if (disambiguateExpression(state) == G_FUNCTION) {
     return newFunctionNode(parseFunction(state, true));
   }
 

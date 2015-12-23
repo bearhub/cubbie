@@ -112,7 +112,7 @@ TypeResult parseType(TokenBuffer state, bool getFirstType, bool ignoreArray) {
 
         Token argName = bufferPeek(state);
 
-        if (argName.type == L_IDENTIFIER) {
+        if (argName.tokenType == L_IDENTIFIER) {
           if (!returnType.argTypes.length && getFirstType) {
             return new TypeResult(returnType.subType, paramType);
           }
@@ -140,5 +140,5 @@ TypeResult parseType(TokenBuffer state, bool getFirstType, bool ignoreArray) {
     returnType = newArrayType(returnType);
   }
 
-  return returnType;
+  return new TypeResult(returnType, null);
 }

@@ -39,7 +39,7 @@ LetStatement newLetStatement(DefineClause clause) {
 
 LoopStatement newLoopStatement(u8 type, Expression condition,
     BlockStatement body) {
-  return new LoopStatement(type, null, null, null, condition, body, null, null,
+  return new LoopStatement(type, null, null, null, condition, body,// null, null,
     0, 0);
 }
 

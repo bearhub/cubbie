@@ -97,6 +97,26 @@ Expression newLiteralBool(bool value) {
     null, null, null, 0, null);
 }
 
+Expression newLiteralFromToken(Token token) {
+  // TODO: check token.tokenType == L_LITERAL?
+  if (token.literalType == T_BOOL) {
+    return newLiteralBool(token.valueBool);
+  }
+
+  if (token.literalType == T_OBJECT) {
+    return new Expression(O_LITERAL, newType(T_OBJECT), false, 0, 0, 0, 0, null,
+      null, null, null, 0, null);
+  }
+
+  if (token.literalType == T_STRING) {
+    return new Expression(O_LITERAL, newType(T_STRING), false, 0, 0, 0, 0,
+      token.valueString, null, null, null, 0, null);
+  }
+
+  // TODO: ensure token.literalType is integer?
+  return newLiteralInteger(token.literalType, token.valueInt);
+}
+
 Expression newNegateNode(Expression value) {
   return newBasicNode(O_NEGATE, value);
 }

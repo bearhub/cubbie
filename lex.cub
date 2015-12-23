@@ -377,6 +377,7 @@ Token scanNumber(Stream in) {
   return token;
 }
 
+// TODO: use maybeDot for floats
 Token scanNumberInner(Stream in) {
   u8 chr = streamShift(in);
 

@@ -121,8 +121,9 @@ Expression parsePrimaryExpression(TokenBuffer state) {
   Token token = accept(state, L_LITERAL);
   if (token != null) {
     // handle 12.method()
-    if (token.maybeDot && bufferPeek(state).tokenType == L_IDENTIFIER) {
-      parsePush(state, useFloatingDot(token));
+    if (token.maybeDot != null && bufferPeek(state).tokenType == L_IDENTIFIER) {
+      bufferPush(state, token.maybeDot);
+      token.maybeDot = null;
     }
 
     return newLiteralFromToken(token);
